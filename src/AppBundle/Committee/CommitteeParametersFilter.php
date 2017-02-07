@@ -51,4 +51,22 @@ class CommitteeParametersFilter
 
         return $keeps ?? [];
     }
+
+    /**
+     * @param Adherent[] $adherents
+     *
+     * @return string[]
+     */
+    public static function getUuidsFromAdherents(array $adherents): array
+    {
+        foreach ($adherents as $adherent) {
+            if (!$adherent instanceof Adherent) {
+                throw new \BadMethodCallException('This method requires a collection of Adherent entities');
+            }
+
+            $uuids[] = (string) $adherent->getUuid();
+        }
+
+        return $uuids ?? [];
+    }
 }

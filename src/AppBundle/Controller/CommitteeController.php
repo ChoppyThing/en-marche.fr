@@ -13,6 +13,8 @@ use AppBundle\Entity\CommitteeMembership;
 use AppBundle\Form\CommitteeCommandType;
 use AppBundle\Form\CommitteeEventCommandType;
 use AppBundle\Form\CommitteeFeedMessageType;
+use AppBundle\Form\ContactMembersType;
+use Ramsey\Uuid\Uuid;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
@@ -175,6 +177,43 @@ class CommitteeController extends Controller
         return new Response(AdherentCsvSerializer::serialize($adherents ?? []), 200, [
             'Content-Type' => 'text/csv',
             'Content-Disposition' => 'attachment; filename="membres-du-comite.csv"',
+        ]);
+    }
+
+    /**
+     * @Route("/membres/contact", name="app_commitee_contact_members")
+     * @Method("POST")
+     * @Security("is_granted('HOST_COMMITTEE', committee)")
+     */
+    public function contactMembersAction(Request $request, Committee $committee): Response
+    {
+        if (!$this->isCsrfTokenValid('committee.contact_members', $request->request->get('token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF protection token to export members.');
+        }
+
+        $committeeManager = $this->get('app.committee_manager');
+
+        /** @var Uuid[] $uuids */
+        $uuids = CommitteeParametersFilter::getUuidsFromJson($request->request->get('contacts', ''));
+
+        /** @var Adherent[] $adherents */
+        $adherents = $this->getDoctrine()->getRepository(CommitteeMembership::class)->findMembers($committee->getUuid());
+        $adherents = CommitteeParametersFilter::removeUnknownAdherents($uuids, $adherents);
+
+        $form = $this->createForm(ContactMembersType::class)
+            ->add('submit', SubmitType::class)
+            ->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            //$this->get('mailer')
+        }
+
+        return $this->render('committee/contact.html.twig', [
+            'committee' => $committee,
+            'committee_members_count' => $committeeManager->getMembersCount($committee),
+            'committee_hosts' => $committeeManager->getCommitteeHosts($committee),
+            'contacts' => json_encode(CommitteeParametersFilter::getUuidsFromAdherents($adherents)),
+            'form' => $form->createView(),
         ]);
     }
 

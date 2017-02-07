@@ -20,7 +20,7 @@ class CommitteeExportTransformer
 
         foreach ($adherents as $adherent) {
             if (!$adherent instanceof Adherent) {
-                throw new \BadMethodCallException('This method require a collection of Adherent entities');
+                throw new \BadMethodCallException('This method requires a collection of Adherent entities');
             }
 
             fputcsv($handle, [
