@@ -14,7 +14,6 @@ use AppBundle\Form\CommitteeCommandType;
 use AppBundle\Form\CommitteeEventCommandType;
 use AppBundle\Form\CommitteeFeedMessageType;
 use AppBundle\Form\ContactMembersType;
-use Ramsey\Uuid\Uuid;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
@@ -188,7 +187,7 @@ class CommitteeController extends Controller
     public function contactMembersAction(Request $request, Committee $committee): Response
     {
         if (!$this->isCsrfTokenValid('committee.contact_members', $request->request->get('token'))) {
-            throw $this->createAccessDeniedException('Invalid CSRF protection token to export members.');
+            throw $this->createAccessDeniedException('Invalid CSRF protection token to contact members.');
         }
 
         $committeeManager = $this->get('app.committee_manager');
@@ -208,7 +207,7 @@ class CommitteeController extends Controller
             'committee' => $committee,
             'committee_members_count' => $committeeManager->getMembersCount($committee),
             'committee_hosts' => $committeeManager->getCommitteeHosts($committee),
-            'contacts' => json_encode(CommitteeUtils::getUuidsFromAdherents($adherents)),
+            'contacts' => CommitteeUtils::getUuidsFromAdherents($adherents),
             'form' => $form->createView(),
         ]);
     }

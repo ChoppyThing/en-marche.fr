@@ -19,12 +19,14 @@
 
         {% if contacts is empty %}
             <div class="error">Vous n'avez pas selectionné de membre destinataire de ce message, il ne pourra donc pas être envoyé.</div>
+        {% else %}
+            <div>{{ 'Votre message va être envoyé par email à %s de votre comité.'|format('committee.members_count'|transchoice(contacts|length)) }}</div>
         {% endif %}
 
         {{ form_start(form) }}
-            <input type="hidden" name="contacts" value="{{ contacts }}">
-            {{ form_end(form) }}
-
+            <input type="hidden" name="contacts" value="{{ contacts|json_encode }}">
+            {{ form_row(form.message) }}
+            {{ form_row(form.submit, { label: 'Envoyer' }) }}
         {{ form_end(form) }}
     </section>
 
