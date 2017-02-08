@@ -1,7 +1,9 @@
-{% for error in errors %}
-    <div class="error">
-        {{ error }}
-    </div>
-{% endfor %}
+{% spaceless %}
+    {% for error in errors %}
+        <div class="error">
+            {{ error }}
+        </div>
+    {% endfor %}
 
-{{ include("search/_#{search.type}.html.twig") }}
+    {{ include("search/_#{search.type}.html.twig") }}
+{% endspaceless %}

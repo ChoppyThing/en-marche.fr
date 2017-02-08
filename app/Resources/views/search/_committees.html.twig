@@ -6,8 +6,4 @@
         <a href="{{ path('app_committee_show', { uuid: result.committee.uuid, slug: result.committee.slug }) }}" class="btn btn--blue">Je Participe</a>
         <i class="fa fa-users"></i> {{ 'committee.participants_count'|transchoice(result.memberships) }}
     </div>
-{% else %}
-    <div class="error">
-        Aucun résultat pour ces critères de recherche.
-    </div>
 {% endfor %}
