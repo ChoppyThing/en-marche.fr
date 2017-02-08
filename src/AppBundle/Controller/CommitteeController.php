@@ -14,6 +14,7 @@ use AppBundle\Form\CommitteeCommandType;
 use AppBundle\Form\CommitteeEventCommandType;
 use AppBundle\Form\CommitteeFeedMessageType;
 use AppBundle\Form\ContactMembersType;
+use AppBundle\Mailjet\Message\CommitteeContactMembersMessage;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
@@ -200,7 +201,11 @@ class CommitteeController extends Controller
             ->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            //$this->get('mailer')
+            $message = CommitteeContactMembersMessage::create($adherents, $this->getUser(), $form->get('message')->getData());
+            $this->get('app.mailjet')->sendMessage($message);
+
+            $this->addFlash('success', $this->get('translator')->trans('committee.contact_members.success'));
+            $this->redirectToRoute('app_committee_edit', ['uuid' => (string) $committee->getUuid(), 'slug' => $committee->getSlug()]);
         }
 
         return $this->render('committee/contact.html.twig', [
