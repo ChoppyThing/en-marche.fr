@@ -193,12 +193,8 @@ class CommitteeController extends Controller
 
         $committeeManager = $this->get('app.committee_manager');
 
-        /** @var Uuid[] $uuids */
-        $uuids = CommitteeParametersFilter::getUuidsFromJson($request->request->get('contacts', ''));
-
-        /** @var Adherent[] $adherents */
-        $adherents = $this->getDoctrine()->getRepository(CommitteeMembership::class)->findMembers($committee->getUuid());
-        $adherents = CommitteeParametersFilter::removeUnknownAdherents($uuids, $adherents);
+        $uuids = CommitteeUtils::getUuidsFromJson($request->request->get('contacts', ''));
+        $adherents = CommitteeUtils::removeUnknownAdherents($uuids, $committeeManager->getCommitteeMembers($committee));
 
         $form = $this->createForm(ContactMembersType::class)
             ->add('submit', SubmitType::class)
@@ -212,7 +208,7 @@ class CommitteeController extends Controller
             'committee' => $committee,
             'committee_members_count' => $committeeManager->getMembersCount($committee),
             'committee_hosts' => $committeeManager->getCommitteeHosts($committee),
-            'contacts' => json_encode(CommitteeParametersFilter::getUuidsFromAdherents($adherents)),
+            'contacts' => json_encode(CommitteeUtils::getUuidsFromAdherents($adherents)),
             'form' => $form->createView(),
         ]);
     }
