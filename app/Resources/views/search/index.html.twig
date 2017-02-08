@@ -12,14 +12,14 @@
         Kernel.onLoad(function(di) {
             var page = 1;
             var limit = {{ search_max_results }};
-            var moreButton = dom('#search-results-more');
+            var moreButton = dom('#search-more');
             var query = dom("[name='q']");
             var radius = dom("[name='r']");
             var city = dom("[name='c']");
-            var type = dom("[name='t']");
+            var type = document.getElementsByName('t');
 
             on(moreButton, 'click', function () {
-                di.get('api').getSearchResults(query.value, radius.value, city.value, type.value, ((page - 1) * limit), function (response) {
+                di.get('api').getSearchResults(query.value, radius.value, city.value, getRadioValue(type), (page * limit), function (response) {
                     if (response instanceof XMLHttpRequest) {
                         hide(moreButton);
                         return;
@@ -31,13 +31,23 @@
                 page++;
             });
 
+            // Allow to copy/paste and on each key press
             on(query, 'keyup', fetchResults);
+            on(query, 'onchange', fetchResults);
+
             on(radius, 'change', fetchResults);
+
+            // Allow to copy/paste and on each key press
             on(city, 'keyup', fetchResults);
-            on(type, 'change', fetchResults);
+            on(city, 'onchange', fetchResults);
+
+            // Bind each type radio buttons
+            type.forEach(function (element) {
+                on(element, 'change', fetchResults);
+            });
 
             function fetchResults() {
-                di.get('api').getSearchResults(query.value, radius.value, city.value, type.value, 0, function (response) {
+                di.get('api').getSearchResults(query.value, radius.value, city.value, getRadioValue(type), 0, function (response) {
                     if (response instanceof XMLHttpRequest) {
                         hide(moreButton);
                         return;
@@ -47,9 +57,20 @@
                 });
             }
 
-            new google.maps.places.Autocomplete(city, {
-                types: ['(cities)']
+            function getRadioValue(element) {
+                for (var i = 0; i < element.length; i++) {
+                    if (element[i].checked) {
+                        return element[i].value;
+                    }
+                }
+            }
+
+            autocomplete = new google.maps.places.Autocomplete(city, {
+                types: ['(cities)'],
+
             });
+
+            autocomplete.addListener('place_changed', fetchResults);
 
             fetchResults();
         });
@@ -83,6 +104,6 @@
         </div>
         <div id="search-results"></div>
 
-        <button role="button" class="btn" id="search-results-more">Afficher plus</button>
+        <button role="button" class="btn" id="search-more">Afficher plus</button>
     </div>
 {% endblock %}
