@@ -1,0 +1,88 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+    Recherche {{ parent() }}
+{% endblock %}
+
+{% block banner '' %}
+
+{% block javascripts %}
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key={{ gmaps_api_key }}&libraries=places"></script>
+    <script type="text/javascript">
+        Kernel.onLoad(function(di) {
+            var page = 1;
+            var limit = {{ search_max_results }};
+            var moreButton = dom('#search-results-more');
+            var query = dom("[name='q']");
+            var radius = dom("[name='r']");
+            var city = dom("[name='c']");
+            var type = dom("[name='t']");
+
+            on(moreButton, 'click', function () {
+                di.get('api').getSearchResults(query.value, radius.value, city.value, type.value, ((page - 1) * limit), function (response) {
+                    if (response instanceof XMLHttpRequest) {
+                        hide(moreButton);
+                        return;
+                    }
+
+                    dom('#search-results').innerHTML = dom('#search-results').innerHTML + response;
+                });
+
+                page++;
+            });
+
+            on(query, 'keyup', fetchResults);
+            on(radius, 'change', fetchResults);
+            on(city, 'keyup', fetchResults);
+            on(type, 'change', fetchResults);
+
+            function fetchResults() {
+                di.get('api').getSearchResults(query.value, radius.value, city.value, type.value, 0, function (response) {
+                    if (response instanceof XMLHttpRequest) {
+                        hide(moreButton);
+                        return;
+                    }
+
+                    dom('#search-results').innerHTML = response;
+                });
+            }
+
+            new google.maps.places.Autocomplete(city, {
+                types: ['(cities)']
+            });
+
+            fetchResults();
+        });
+    </script>
+{% endblock %}
+
+{% block content %}
+    <header class="l__wrapper space--60-0">
+        <h1 class="text--large">Comités et événements</h1>
+        <h2><small>Vous pouvez participer aux événements même si vous n'êtes pas adhérent.</small></h2>
+    </header>
+
+    <div class="l__wrapper">
+        <div style="background-color: grey; padding: 20px">
+            <input name="{{ constant('AppBundle\\Search\\SearchParametersFilter::PARAMETER_QUERY') }}" placeholder="Recherche">
+            dans un rayon de
+
+            {# this widget will be embedded in the ribbon text #}
+            <select name="{{ constant('AppBundle\\Search\\SearchParametersFilter::PARAMETER_RADIUS') }}">
+                {% for option in constant('AppBundle\\Search\\SearchParametersFilter::RADII') %}
+                    <option value="{{ option }}" {% if constant('AppBundle\\Search\\SearchParametersFilter::DEFAULT_RADIUS') == option %}selected="selected"{% endif %}>{{ option }} Km</option>
+                {% endfor %}
+            </select>
+
+            autour de
+            {# this widget will be embedded in the ribbon text #}
+            <input name="{{ constant('AppBundle\\Search\\SearchParametersFilter::PARAMETER_CITY') }}" value="{% if app.user.cityName is defined %}{{ app.user.cityName }}{% else %}{{ constant('AppBundle\\Search\\SearchParametersFilter::DEFAULT_CITY') }}{% endif %}" placeholder="Ville ou code postal">
+
+            <label><input type="radio" name="{{ constant('AppBundle\\Search\\SearchParametersFilter::PARAMETER_TYPE') }}" value="{{ constant('AppBundle\\Search\\SearchParametersFilter::TYPE_COMMITTEES') }}" checked="checked"> Comités</label>
+            <label><input type="radio" name="{{ constant('AppBundle\\Search\\SearchParametersFilter::PARAMETER_TYPE') }}" value="{{ constant('AppBundle\\Search\\SearchParametersFilter::TYPE_EVENTS') }}"> Evénements</label>
+        </div>
+        <div id="search-results"></div>
+
+        <button role="button" class="btn" id="search-results-more">Afficher plus</button>
+    </div>
+{% endblock %}

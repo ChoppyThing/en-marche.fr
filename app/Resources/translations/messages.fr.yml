@@ -50,3 +50,8 @@ committee.members_count: '1 membre|%count% membres'
 committee.participants_count: '{1} %count% participant|[2,Inf[ %count% participants'
 
 committee.event.creation.success: Le nouvel événement a bien été créé et publié sur la page du comité.
+
+#
+# Search
+#
+search.geocoding.exception: Nous ne sommes pas parvenus à reconnaître la ville que vous avez saisie.
